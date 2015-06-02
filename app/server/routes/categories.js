@@ -48,6 +48,23 @@ function createJsonResult(func,mthod,stt,msg,err,res){
 	return jsonResult;
 }
 
+function createResult(stt,msg, res){
+	var jsonResult;
+	if (res !== null) {
+		jsonResult = {	
+						code: stt,
+						msg: msg,
+						data: res
+					};
+	}else{
+		jsonResult = {	
+						code: stt,
+						msg: msg
+					};
+	}
+	return jsonResult;
+}
+
 // --------------------------------
 // VALIDATE PARAMETER
 // value: value of parameter
@@ -83,28 +100,28 @@ module.exports = function(app, server) {
 		}
 		var errors = req.validationErrors();
 		if (errors) {
-			var jsonResult = createJsonResult(ADD_CATEGORY, METHOD_POS, STATUS_FAIL, SYSTEM_ERR, errors, null);
+			var jsonResult = createResult(STATUS_FAIL, errors, null);
 			res.json(jsonResult,STATUS_FAIL);	
 		}else{
 			var token = req.body.token;
 			LM.checkToken(token, function (err, objects) {
 				if (err) {
-					var jsonResult = createJsonResult(ADD_CATEGORY, METHOD_GET, STATUS_FAIL, SYSTEM_ERR, err, null);
-					res.json(jsonResult, 400);
+					var jsonResult = createResult(STATUS_FAIL, err, null);
+					res.json(jsonResult, STATUS_FAIL);
 					return;
 				} else if(objects != null && objects.userid != undefined ){
 					CM.insertCatetory(req.body, function(err,resDocument){
 						if(resDocument){
-							var jsonResult = createJsonResult(ADD_CATEGORY, METHOD_POS, STATUS_SUCESS, SYSTEM_SUC, null, resDocument);
+							var jsonResult = createResult(STATUS_SUCESS, SYSTEM_SUC, null);
 							res.json(jsonResult,STATUS_SUCESS);
 						}else{
-							var jsonResult = createJsonResult(ADD_CATEGORY, METHOD_POS, STATUS_FAIL, SYSTEM_ERR, err, null);
+							var jsonResult = createResult(STATUS_FAIL, err, null);
 							res.json(jsonResult,STATUS_FAIL);
 						}
 					});
 				}else{
-					var jsonResult = createJsonResult(ADD_CATEGORY, METHOD_GET, STATUS_FAIL, SYSTEM_ERR, MSG_INVALID_TOKEN, null)
-					res.json(jsonResult, 400);
+					var jsonResult = createResult(STATUS_FAIL, MSG_INVALID_TOKEN, null);
+					res.json(jsonResult, STATUS_FAIL);
 				}
 			});
 		}
@@ -114,28 +131,60 @@ module.exports = function(app, server) {
 		req.checkBody('token', 'Invalid token').notEmpty();
 		var errors = req.validationErrors();
 		if (errors) {
-			var jsonResult = createJsonResult(UPDATE_CATEGORY, METHOD_POS, STATUS_FAIL, SYSTEM_ERR, errors, null);
+			var jsonResult = createResult(STATUS_FAIL, errors, null);
 			res.json(jsonResult,STATUS_FAIL);	
 		}else{
 			var token = req.body.token;
 			LM.checkToken(token, function (err, objects) {
 				if (err) {
-					var jsonResult = createJsonResult(UPDATE_CATEGORY, METHOD_GET, STATUS_FAIL, SYSTEM_ERR, err, null);
-					res.json(jsonResult, 400);
+					var jsonResult = createResult(STATUS_FAIL, err, null);
+					res.json(jsonResult, STATUS_FAIL);
 					return;
 				} else if(objects != null && objects.userid != undefined ){
 					CM.updateCategory(req.body, function(err, resDocument){
 						if(resDocument){
-							var jsonResult = createJsonResult(UPDATE_CATEGORY, METHOD_PUT, STATUS_SUCESS, SYSTEM_SUC, null, resDocument);
+							var jsonResult = createResult(STATUS_SUCESS, SYSTEM_SUC, null);
 							res.json(jsonResult,STATUS_SUCESS);
 						}else{
-							var jsonResult = createJsonResult(UPDATE_CATEGORY, METHOD_PUT, STATUS_FAIL, SYSTEM_ERR, err, null);
+							var jsonResult = createResult(STATUS_FAIL, err, null);
 							res.json(jsonResult,STATUS_FAIL);
 						}
 					});
 				}else{
-					var jsonResult = createJsonResult(UPDATE_CATEGORY, METHOD_GET, STATUS_FAIL, SYSTEM_ERR, MSG_INVALID_TOKEN, null)
-					res.json(jsonResult, 400);
+					var jsonResult = createResult(STATUS_FAIL, MSG_INVALID_TOKEN, null);
+					res.json(jsonResult, STATUS_FAIL);
+				}
+			});
+		}
+	});
+
+	
+
+	app.delete('/category',function(req, res){
+		req.checkBody('token', 'Invalid token').notEmpty();
+		var errors = req.validationErrors();
+		if (errors) {
+			var jsonResult = createResult(STATUS_FAIL, errors, null);
+			res.json(jsonResult,STATUS_FAIL);	
+		}else{
+			var token = req.body.token;
+			LM.checkToken(token, function (err, objects) {
+				if (err) {
+					var jsonResult = createResult(STATUS_FAIL, err, null);
+					res.json(jsonResult, STATUS_FAIL);
+				} else if(objects != null && objects.userid != undefined ){
+					CM.deleteCategory(req.body.categoryID, function(err, resDocument){
+						if (resDocument) {
+							var jsonResult = createResult(STATUS_SUCESS, SYSTEM_SUC, null);
+							res.json(jsonResult,STATUS_SUCESS);
+						}else{
+							var jsonResult = createResult(STATUS_FAIL, err, null);
+							res.json(jsonResult,STATUS_FAIL);
+						}
+					});
+				}else{
+					var jsonResult = createResult(STATUS_FAIL, MSG_INVALID_TOKEN, null);
+					res.json(jsonResult, STATUS_FAIL);
 				}
 			});
 		}
@@ -144,42 +193,12 @@ module.exports = function(app, server) {
 	app.post('/getcategory', function(req, res){
 		CM.getCategory(req.body, function(err, resDocument){
 			if(resDocument){
-				var jsonResult = createJsonResult(GET_CATEGORY, METHOD_POS, STATUS_SUCESS, SYSTEM_SUC, null, resDocument);
+				var jsonResult = createResult(STATUS_SUCESS, SYSTEM_SUC, resDocument);
 				res.json(jsonResult,STATUS_SUCESS);
 			}else{
-				var jsonResult = createJsonResult(GET_CATEGORY, METHOD_POS, STATUS_FAIL, SYSTEM_ERR, err, null);
+				var jsonResult = createResult(STATUS_FAIL, err, null);
 				res.json(jsonResult,STATUS_FAIL);
 			}
 		});
-	});
-
-	app.delete('/category',function(req, res){
-		req.checkBody('token', 'Invalid token').notEmpty();
-		var errors = req.validationErrors();
-		if (errors) {
-			var jsonResult = createJsonResult(DELETE_CATEGORY, METHOD_POS, STATUS_FAIL, SYSTEM_ERR, errors, null);
-			res.json(jsonResult,STATUS_FAIL);	
-		}else{
-			var token = req.body.token;
-			LM.checkToken(token, function (err, objects) {
-				if (err) {
-					var jsonResult = createJsonResult(DELETE_CATEGORY, METHOD_GET, STATUS_FAIL, SYSTEM_ERR, err, null);
-					res.json(jsonResult, 400);
-				} else if(objects != null && objects.userid != undefined ){
-					CM.deleteCategory(req.body.categoryID, function(err, resDocument){
-						if (resDocument) {
-							var jsonResult = createJsonResult(DELETE_CATEGORY, METHOD_DELETE, STATUS_SUCESS, SYSTEM_SUC, null, resDocument);
-							res.json(jsonResult,STATUS_SUCESS);
-						}else{
-							var jsonResult = createJsonResult(DELETE_CATEGORY, METHOD_DELETE, STATUS_FAIL, SYSTEM_ERR, err, null);
-							res.json(jsonResult,STATUS_FAIL);
-						}
-					});
-				}else{
-					var jsonResult = createJsonResult(DELETE_CATEGORY, METHOD_GET, STATUS_FAIL, SYSTEM_ERR, MSG_INVALID_TOKEN, null)
-					res.json(jsonResult, 400);
-				}
-			});
-		}
 	});
 }

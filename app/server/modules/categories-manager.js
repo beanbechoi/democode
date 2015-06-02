@@ -14,62 +14,19 @@ module.exports.insertCatetory = function(document, callback) {
 		} else {
 			var id_seq = result.seq;
 			var date = new Date();
-			var document_cat = {
-				'_id' : id_seq,
-				'title' : document.title,
-				'alias' : document.alias,
-				'descript' : document.descript,
-				'order' : document.order,
-				'parentID' : parseInt(document.parentID),
-				'user_create' : document.user_create,
-				'date_create' : date,
-				'date_edit' : date,
-				'child' : []
-			};
-
-			categories.insert(document_cat, {
+			document._id = id_seq;
+			document.date_create = date;
+			document.date_edit = date;
+			if (_.isNumber(document.parentID)) {
+				document.parentID = parseInt(document.parentID);
+			} 
+			categories.insert(document, {
 				safe : true
 			}, function(errDocument, resDocument) {
 				if (errDocument) {
 					callback(errDocument, null);
 				} else {
-					var parentID = document.parentID;
-					if (_.isUndefined(document.parentID)
-							|| _.isEmpty(document.parentID)) {
-						callback(null, resDocument);
-					} else {
-						var iParentID = parseInt(parentID);
-						categories.find({
-							_id : iParentID
-						}).toArray(function(err, resCat) {
-							if (err || resCat.length == 0) {
-								callback(null, resDocument);
-							} else {
-								var parrentObj = resCat[0];
-								var ObjCat = resDocument[0];
-								delete ObjCat.child;
-								delete ObjCat.parentID;
-								parrentObj.child.push(ObjCat);
-								if (resCat) {
-									categories.update({
-										_id : iParentID
-									}, {
-										$set : {
-											child : parrentObj.child
-										}
-									}, function(err, res) {
-										if (err) {
-											callback(err, null);
-										} else {
-											callback(null, resDocument);
-										}
-									});
-								} else {
-									callback(null, resDocument);
-								}
-							}
-						});
-					}
+					callback(null, resDocument);
 				}
 			});
 		}
@@ -79,34 +36,34 @@ module.exports.insertCatetory = function(document, callback) {
 module.exports.getCategory = function(document, callback) {
 	callback = (typeof callback === 'function') ? callback : function() {
 	};
-
-	var where = document;
-	delete where.limit;
-	delete where.skip;
-	delete where.order;
+	var limit = parseInt(document.limit);
+	var skip = parseInt(document.skip);
+	var order = document.order;
+	delete document.limit;
+	delete document.skip;
+	delete document.order;
 	if (document._id === null || typeof document._id === 'undefined'
-			|| document._id === "null" || document._id.length < 1) {
-		categories.find(where).limit(parseInt(document.limit)).skip(
-				parseInt(document.skip)).sort([ [ document.order, 'asc' ] ])
-				.toArray(function(e, res) {
-					if (e) {
-						callback(e, null)
-					} else {
-						callback(null, res)
-					}
-				});
-	} else {
-		categories.find({
-			_id : parseInt(document._id)
-		}).limit(parseInt(document.limit)).skip(parseInt(document.skip)).sort(
-				[ [ document.order, 'asc' ] ]).toArray(function(e, res) {
-			if (e) {
-				callback(e, null)
-			} else {
-				callback(null, res)
-			}
-		});
-	}
+		|| document._id === "null" || document._id.length < 1) {
+		categories.find(document).limit(limit).skip(skip).sort([[order, 'asc'] ])
+	.toArray(function(e, res) {
+		if (e) {
+			callback(e, null)
+		} else {
+			callback(null, res)
+		}
+	});
+} else {
+	categories.find({
+		_id : parseInt(document._id)
+	}).limit(parseInt(document.limit)).skip(parseInt(document.skip)).sort(
+	[ [ document.order, 'asc' ] ]).toArray(function(e, res) {
+		if (e) {
+			callback(e, null)
+		} else {
+			callback(null, res)
+		}
+	});
+}
 };
 module.exports.updateCategory = function(document, callback) {
 	callback = (typeof callback === 'function') ? callback : function() {
@@ -121,33 +78,9 @@ module.exports.updateCategory = function(document, callback) {
 		$set : document
 	}, function(err, res) {
 		if (err) {
-			callback(err, null)
+			callback(err, null);
 		} else {
-			categories.find({
-				parentID : documentID
-			}).toArray(function(e, resFind) {
-				if (e) {
-					callback(e, null)
-				} else {
-					resFind.forEach(function(item) {
-						delete item.child;
-						delete item.parentID;
-					});
-					categories.update({
-						_id : documentID
-					}, {
-						$set : {
-							'child' : resFind
-						}
-					}, function(err1, res1) {
-						if (err1) {
-							callback(err1, null)
-						} else {
-							callback(null, res1)
-						}
-					});
-				}
-			});
+			callback(null, res);
 		}
 	});
 };
@@ -156,33 +89,13 @@ module.exports.deleteCategory = function(document, callback) {
 	callback = (typeof callback === 'function') ? callback : function() {
 	};
 	var documentID = parseInt(document._id);
-	categories.findOne({
+	categories.remove({
 		_id : documentID
 	}, function(err, res) {
 		if (err) {
 			callback(err, null);
 		} else {
-			categories.update({
-				_id : res.parentID
-			}, {
-				$unset : {
-					'res.child._id' : documentID
-				}
-			}, function(err1, res1) {
-				if (err1) {
-					callback(err1, null);
-				} else {
-					categories.remove({
-						_id : documentID
-					}, function(err, res) {
-						if (err) {
-							callback(err, null);
-						} else {
-							callback(null, res);
-						}
-					});
-				}
-			});
+			callback(null, res);
 		}
 	});
 

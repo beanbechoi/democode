@@ -1,4 +1,5 @@
 var cnMongoDB = require('../mongodb/connection');
+var seq_mod = require('../modules/sequence-manager');
 var crypto = require('crypto');
 var accountDB = cnMongoDB.account;
 var systemDB = cnMongoDB.systemstatus;
@@ -6,34 +7,62 @@ var systemDB = cnMongoDB.systemstatus;
 module.exports.insertAccount = function(document, callback){
 	callback = (typeof callback === 'function') ? callback : function() {
 	};
-	document._id = document.username;
-	document.date_create = new Date();
-	accountDB.insert(document,{
-		safe : true
-	}, function(err, res){
+	seq_mod.getNextSequence('account', function(err, result) {
 		if (err) {
-			if (err.code == 11000) {
-				callback('Username already exists. Please enter a different username!', null);
-			} else{
-				callback('Can not register user', null);
-			}
-		}else{
-			callback(null, res);
+			callback(err, null);
+		} else {
+			document._id = document.username;
+			document.username = document.username;
+			document.date_create = new Date();
+			document.userid = result.seq;
+			accountDB.insert(document,{
+				safe : true
+			}, function(err, res){
+				if (err) {
+					if (err.code == 11000) {
+						callback('Username already exists. Please enter a different username!', null);
+					} else{
+						callback('Can not register user', null);
+					}
+				}else{
+					callback(null, res);
+				}
+			});
 		}
 	});
+
+	
 };
 
 module.exports.updateAccount = function(document, callback) {
 	callback = (typeof callback === 'function') ? callback : function() {
 	};
 
-	var documentID = parseInt(document._id);
-	delete document._id;
+	var documentID = parseInt(document.userid);
+	delete document.userid;
 	document.date_edit = new Date();
 	accountDB.update({
-		_id : documentID
+		userid : documentID
 	}, {
 		$set : document
+	}, function(err, res) {
+		if (err) {
+			callback(err, null);
+		} else {
+			callback(null, res);
+		}
+	});
+};
+
+module.exports.deleteAccount = function(document, callback) {
+	callback = (typeof callback === 'function') ? callback : function() {
+	};
+
+	var documentID = parseInt(document.userid);
+	delete document.userid;
+	document.date_edit = new Date();
+	accountDB.remove({
+		userid : documentID
 	}, function(err, res) {
 		if (err) {
 			callback(err, null);
@@ -73,7 +102,7 @@ module.exports.insertToken = function(userid, token, callback) {
 		$set : {
 			"token" : token,
 			"userid" : userid,
-			"lastedit" : iDate
+			"last_login" : iDate
 		}
 	}, {
 		upsert : true
@@ -97,33 +126,35 @@ module.exports.getUser = function(document, callback) {
 	callback = (typeof callback === 'function') ? callback : function() {
 	};
 
-	var where = document;
-	delete where.limit;
-	delete where.skip;
-	delete where.order;
+	var limit = parseInt(document.limit);
+	var skip = parseInt(document.skip);
+	var order = document.order;
+	delete document.limit;
+	delete document.skip;
+	delete document.order;
 	if (document._id === null || typeof document._id === 'undefined'
-			|| document._id === "null" || document._id.length < 1) {
-		accountDB.find(where).limit(parseInt(document.limit)).skip(
-				parseInt(document.skip)).sort([ [ document.order, 'asc' ] ])
-				.toArray(function(e, res) {
-					if (e) {
-						callback(e, null)
-					} else {
-						callback(null, res)
-					}
-				});
-	} else {
-		accountDB.find({
-			_id : parseInt(document._id)
-		}).limit(parseInt(document.limit)).skip(parseInt(document.skip)).sort(
-				[ [ document.order, 'asc' ] ]).toArray(function(e, res) {
-			if (e) {
-				callback(e, null)
-			} else {
-				callback(null, res)
-			}
-		});
-	}
+		|| document._id === "null" || document._id.length < 1) {
+		accountDB.find(document, {fields: {_id:0}}).limit(limit).skip(
+			skip).sort([ [ order, 'asc' ] ])
+	.toArray(function(e, res) {
+		if (e) {
+			callback(e, null)
+		} else {
+			callback(null, res)
+		}
+	});
+} else {
+	accountDB.find({
+		_id : parseInt(document._id)
+	}, {fields: {_id:0}}).limit(limit).skip(skip).sort(
+	[ [ order, 'asc' ] ]).toArray(function(e, res) {
+		if (e) {
+			callback(e, null)
+		} else {
+			callback(null, res)
+		}
+	});
+}
 };
 
 // Logout
