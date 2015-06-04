@@ -69,7 +69,7 @@ function createResult(stt,msg, res){
 // VALIDATE PARAMETER
 // value: value of parameter
 // type: type of parameter
-// Return: json result
+// Return: json_ result
 // --------------------------------
 function validateParam(value, type){
 	// TYPE 1 : OBJECTID
@@ -160,7 +160,7 @@ module.exports = function(app, server) {
 
 	
 
-	app.delete('/category',function(req, res){
+	app.del('/category',function(req, res){
 		req.checkBody('token', 'Invalid token').notEmpty();
 		var errors = req.validationErrors();
 		if (errors) {
@@ -201,4 +201,4 @@ module.exports = function(app, server) {
 			}
 		});
 	});
-}
+};

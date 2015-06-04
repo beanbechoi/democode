@@ -1,5 +1,5 @@
-var LM = require('../modules/login-manager')
-var crypto = require('crypto')
+var LM = require('../modules/login-manager');
+var crypto = require('crypto');
 
 // --------------------------------
 // Define Variable Category Object
@@ -89,7 +89,7 @@ module.exports = function(app, nodeuuid) {
 					var jsonResult = createResult(STATUS_SUCESS, SYSTEM_SUC, null);
 					res.json(jsonResult,STATUS_SUCESS);	
 				}
-			})
+			});
 		}
 	});
 
@@ -129,7 +129,7 @@ module.exports = function(app, nodeuuid) {
 		}
 	});
 
-	app.delete('/user', function(req, res){
+	app.del('/user', function(req, res){
 
 		req.checkBody('token', 'Invalid token').notEmpty();
 		var errors = req.validationErrors();
@@ -205,7 +205,7 @@ module.exports = function(app, nodeuuid) {
 									ip_reg : objects.ip_reg,
 									token : objectsToken.token,
 									lastedit : objectsToken.iDate
-								}
+								};
 								var jsonResult = createResult(STATUS_SUCESS, SYSTEM_SUC, result);
 								res.json(jsonResult, STATUS_SUCESS);
 							}
