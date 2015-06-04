@@ -52,15 +52,15 @@ function createResult(stt,msg, res){
 	var jsonResult;
 	if (res !== null) {
 		jsonResult = {	
-						code: stt,
-						msg: msg,
-						data: res
-					};
+			code: stt,
+			msg: msg,
+			data: res
+		};
 	}else{
 		jsonResult = {	
-						code: stt,
-						msg: msg
-					};
+			code: stt,
+			msg: msg
+		};
 	}
 	return jsonResult;
 }
@@ -127,78 +127,99 @@ module.exports = function(app, server) {
 		}
 	});
 
-	app.put('/category', function(req, res){
-		req.checkBody('token', 'Invalid token').notEmpty();
-		var errors = req.validationErrors();
-		if (errors) {
-			var jsonResult = createResult(STATUS_FAIL, errors, null);
-			res.json(jsonResult,STATUS_FAIL);	
-		}else{
-			var token = req.body.token;
-			LM.checkToken(token, function (err, objects) {
-				if (err) {
-					var jsonResult = createResult(STATUS_FAIL, err, null);
-					res.json(jsonResult, STATUS_FAIL);
-					return;
-				} else if(objects != null && objects.userid != undefined ){
-					CM.updateCategory(req.body, function(err, resDocument){
-						if(resDocument){
-							var jsonResult = createResult(STATUS_SUCESS, SYSTEM_SUC, null);
-							res.json(jsonResult,STATUS_SUCESS);
-						}else{
-							var jsonResult = createResult(STATUS_FAIL, err, null);
-							res.json(jsonResult,STATUS_FAIL);
-						}
-					});
-				}else{
-					var jsonResult = createResult(STATUS_FAIL, MSG_INVALID_TOKEN, null);
-					res.json(jsonResult, STATUS_FAIL);
-				}
-			});
-		}
-	});
-
-	
-
-	app.delete('/category',function(req, res){
-		req.checkBody('token', 'Invalid token').notEmpty();
-		var errors = req.validationErrors();
-		if (errors) {
-			var jsonResult = createResult(STATUS_FAIL, errors, null);
-			res.json(jsonResult,STATUS_FAIL);	
-		}else{
-			var token = req.body.token;
-			LM.checkToken(token, function (err, objects) {
-				if (err) {
-					var jsonResult = createResult(STATUS_FAIL, err, null);
-					res.json(jsonResult, STATUS_FAIL);
-				} else if(objects != null && objects.userid != undefined ){
-					CM.deleteCategory(req.body.categoryID, function(err, resDocument){
-						if (resDocument) {
-							var jsonResult = createResult(STATUS_SUCESS, SYSTEM_SUC, null);
-							res.json(jsonResult,STATUS_SUCESS);
-						}else{
-							var jsonResult = createResult(STATUS_FAIL, err, null);
-							res.json(jsonResult,STATUS_FAIL);
-						}
-					});
-				}else{
-					var jsonResult = createResult(STATUS_FAIL, MSG_INVALID_TOKEN, null);
-					res.json(jsonResult, STATUS_FAIL);
-				}
-			});
-		}
-	});
-
-	app.post('/getcategory', function(req, res){
-		CM.getCategory(req.body, function(err, resDocument){
-			if(resDocument){
-				var jsonResult = createResult(STATUS_SUCESS, SYSTEM_SUC, resDocument);
-				res.json(jsonResult,STATUS_SUCESS);
-			}else{
+app.put('/category', function(req, res){
+	req.checkBody('token', 'Invalid token').notEmpty();
+	var errors = req.validationErrors();
+	if (errors) {
+		var jsonResult = createResult(STATUS_FAIL, errors, null);
+		res.json(jsonResult,STATUS_FAIL);	
+	}else{
+		var token = req.body.token;
+		LM.checkToken(token, function (err, objects) {
+			if (err) {
 				var jsonResult = createResult(STATUS_FAIL, err, null);
-				res.json(jsonResult,STATUS_FAIL);
+				res.json(jsonResult, STATUS_FAIL);
+				return;
+			} else if(objects != null && objects.userid != undefined ){
+				CM.updateCategory(req.body, function(err, resDocument){
+					if(resDocument){
+						var jsonResult = createResult(STATUS_SUCESS, SYSTEM_SUC, null);
+						res.json(jsonResult,STATUS_SUCESS);
+					}else{
+						var jsonResult = createResult(STATUS_FAIL, err, null);
+						res.json(jsonResult,STATUS_FAIL);
+					}
+				});
+			}else{
+				var jsonResult = createResult(STATUS_FAIL, MSG_INVALID_TOKEN, null);
+				res.json(jsonResult, STATUS_FAIL);
 			}
 		});
+	}
+});
+
+
+
+app.delete('/category',function(req, res){
+	req.checkBody('token', 'Invalid token').notEmpty();
+	var errors = req.validationErrors();
+	if (errors) {
+		var jsonResult = createResult(STATUS_FAIL, errors, null);
+		res.json(jsonResult,STATUS_FAIL);	
+	}else{
+		var token = req.body.token;
+		LM.checkToken(token, function (err, objects) {
+			if (err) {
+				var jsonResult = createResult(STATUS_FAIL, err, null);
+				res.json(jsonResult, STATUS_FAIL);
+			} else if(objects != null && objects.userid != undefined ){
+				CM.deleteCategory(req.body.categoryID, function(err, resDocument){
+					if (resDocument) {
+						var jsonResult = createResult(STATUS_SUCESS, SYSTEM_SUC, null);
+						res.json(jsonResult,STATUS_SUCESS);
+					}else{
+						var jsonResult = createResult(STATUS_FAIL, err, null);
+						res.json(jsonResult,STATUS_FAIL);
+					}
+				});
+			}else{
+				var jsonResult = createResult(STATUS_FAIL, MSG_INVALID_TOKEN, null);
+				res.json(jsonResult, STATUS_FAIL);
+			}
+		});
+	}
+});
+
+app.post('/getCategoryByID', function(req, res){
+	req.checkBody('_id', 'Invalid categoryID').notEmpty();
+	var errors = req.validationErrors();
+	if (errors) {
+		var jsonResult = createResult(STATUS_FAIL, errors, null);
+		res.json(jsonResult,STATUS_FAIL);
+	}else{
+		CM.getCategoryByID(req.body, function(err, resDocument){
+			if(err){
+				var jsonResult = createResult(STATUS_FAIL, err, null);
+				res.json(jsonResult,STATUS_FAIL);
+			}else{
+				var jsonResult = createResult(STATUS_SUCESS, SYSTEM_SUC, resDocument);
+				res.json(jsonResult,STATUS_SUCESS);
+			}
+		});
+	}
+
+});
+
+app.post('/getAllCategory', function(req, res){
+	CM.getAllCategory(req.body, function(err, resDocument){
+		if(resDocument){
+			var jsonResult = createResult(STATUS_SUCESS, SYSTEM_SUC, resDocument);
+			res.json(jsonResult,STATUS_SUCESS);
+		}else{
+			var jsonResult = createResult(STATUS_FAIL, err, null);
+			res.json(jsonResult,STATUS_FAIL);
+		}
 	});
+});
+
 }

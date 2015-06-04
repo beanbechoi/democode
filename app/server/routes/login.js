@@ -93,6 +93,43 @@ module.exports = function(app, nodeuuid) {
 		}
 	});
 
+	app.put('/changepass', function(req, res){
+
+		req.checkBody('token', 'Invalid token').notEmpty();
+		req.checkBody('userid', 'Invalid userid').notEmpty();
+		req.checkBody('old_password', 'Invalid old_password').notEmpty();
+		req.checkBody('new_password', 'Invalid new_password').notEmpty();
+		var errors = req.validationErrors();
+		if (errors) {
+			var jsonResult = createResult(STATUS_FAIL, errors, null);
+			res.json(jsonResult,STATUS_FAIL);
+			return;
+		}else{
+			var token = req.body.token;
+			LM.checkToken(token, function (err, objects) {
+				if (err) {
+					var jsonResult = createResult(STATUS_FAIL, err, null);
+					res.json(jsonResult, STATUS_FAIL);
+					return;
+				} else{
+					LM.changePassword(req.body, function(err, resDocument){
+						if(err){
+							var jsonResult = createResult(STATUS_FAIL, err, null);
+							res.json(jsonResult,STATUS_FAIL);
+							return;
+						}else{
+							var jsonResult = createResult(STATUS_SUCESS, SYSTEM_SUC, null);
+							res.json(jsonResult,STATUS_SUCESS);
+							return;
+							
+							
+						}
+					});
+				}
+			});
+		}
+	});
+
 	app.put('/user', function(req, res){
 
 		req.checkBody('token', 'Invalid token').notEmpty();
@@ -108,7 +145,7 @@ module.exports = function(app, nodeuuid) {
 					var jsonResult = createResult(STATUS_FAIL, SYSTEM_ERR, null);
 					res.json(jsonResult, STATUS_FAIL);
 					return;
-				} else if(objects != null && objects.userid != undefined ){
+				} else {
 					LM.updateAccount(req.body, function(err, resDocument){
 						if(resDocument){
 							var jsonResult = createResult(STATUS_SUCESS, SYSTEM_SUC, null);
@@ -120,10 +157,6 @@ module.exports = function(app, nodeuuid) {
 							return;
 						}
 					});
-				}else{
-					var jsonResult = createResult(STATUS_FAIL, MSG_INVALID_TOKEN, null);
-					res.json(jsonResult, STATUS_FAIL);
-					return;
 				}
 			});
 		}
@@ -144,7 +177,7 @@ module.exports = function(app, nodeuuid) {
 					var jsonResult = createResult(STATUS_FAIL, SYSTEM_ERR, null);
 					res.json(jsonResult, STATUS_FAIL);
 					return;
-				} else if(objects != null && objects.userid != undefined ){
+				} else {
 					LM.deleteAccount(req.body, function(err, resDocument){
 						if(resDocument){
 							var jsonResult = createResult(STATUS_SUCESS, SYSTEM_SUC, null);
@@ -156,10 +189,6 @@ module.exports = function(app, nodeuuid) {
 							return;
 						}
 					});
-				}else{
-					var jsonResult = createResult(STATUS_FAIL, MSG_INVALID_TOKEN, null);
-					res.json(jsonResult, STATUS_FAIL);
-					return;
 				}
 			});
 		}
@@ -211,7 +240,7 @@ module.exports = function(app, nodeuuid) {
 							}
 						});
 				} else {
-					var jsonResult = createResult(STATUS_FAIL, MSG_LOGINFAIL, result);
+					var jsonResult = createResult(STATUS_FAIL, MSG_LOGINFAIL, null);
 					res.json(jsonResult, STATUS_FAIL);
 				}
 			});
