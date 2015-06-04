@@ -191,7 +191,7 @@ module.exports = function(app, server) {
 	});
 
 	app.post('/getcategory', function(req, res){
-		CM.getCategory(req.body, function(err, resDocument){
+		CM.getAllCategory(req.body, function(err, resDocument){
 			if(resDocument){
 				var jsonResult = createResult(STATUS_SUCESS, SYSTEM_SUC, resDocument);
 				res.json(jsonResult,STATUS_SUCESS);

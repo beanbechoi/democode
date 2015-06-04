@@ -33,6 +33,27 @@ module.exports.insertCatetory = function(document, callback) {
 
 	});
 };
+module.exports.getAllCategory = function(document, callback){
+	callback = (typeof callback === 'function') ? callback : function() {
+	};
+
+	categories.find({parentID:0}).toArray(function(e, res){
+		if (e) {
+			callback(e, null);
+		}else{
+			callback(null, res);
+//			for (var obj in res){
+//				var child = categories.find({parentID:obj.parentID}).toArray();
+//				for (var obj1 in child){
+//					var child1 = categories.find({parentID:obj1.parentID}).toArray();
+//					obj1.child = child1;
+//				}
+//				obj.child = child;
+//			}
+			
+		}
+	});
+}
 module.exports.getCategory = function(document, callback) {
 	callback = (typeof callback === 'function') ? callback : function() {
 	};
@@ -52,18 +73,18 @@ module.exports.getCategory = function(document, callback) {
 			callback(null, res)
 		}
 	});
-} else {
-	categories.find({
-		_id : parseInt(document._id)
-	}).limit(parseInt(document.limit)).skip(parseInt(document.skip)).sort(
-	[ [ document.order, 'asc' ] ]).toArray(function(e, res) {
-		if (e) {
-			callback(e, null)
-		} else {
-			callback(null, res)
-		}
-	});
-}
+	} else {
+		categories.find({
+			_id : parseInt(document._id)
+		}).limit(parseInt(document.limit)).skip(parseInt(document.skip)).sort(
+		[ [ document.order, 'asc' ] ]).toArray(function(e, res) {
+			if (e) {
+				callback(e, null)
+			} else {
+				callback(null, res)
+			}
+		});
+	}
 };
 module.exports.updateCategory = function(document, callback) {
 	callback = (typeof callback === 'function') ? callback : function() {
