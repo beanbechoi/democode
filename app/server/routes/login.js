@@ -1,4 +1,5 @@
 var LM = require('../modules/login-manager')
+var RM = require('../modules/result-manager');
 var crypto = require('crypto')
 
 // --------------------------------
@@ -29,45 +30,6 @@ var STATUS_FAIL = 400;
 var MSG_LOGINFAIL = 'Username or password is not correctly';
 var MSG_INVALID_TOKEN = 'Your token is invalid';
 
-// --------------------------------
-// SAMPLE RESULT JSON
-// param func: function name excute
-// mthod: method excute [POST/GET]
-// stt: result status of function
-// msg: message status
-// err: error detail of result excute function
-// res: result of function
-// Return: json result
-// --------------------------------
-function createJsonResult(func, mthod, stt, msg, err, res) {
-	var jsonResult = {
-		func_cd : func,
-		method : mthod,
-		code : stt,
-		msg : msg,
-		error : err,
-		data : res,
-	};
-	return jsonResult;
-}
-
-function createResult(stt,msg, res){
-	var jsonResult;
-	if (res !== null) {
-		jsonResult = {	
-						code: stt,
-						msg: msg,
-						data: res
-					};
-	}else{
-		jsonResult = {	
-						code: stt,
-						msg: msg
-					};
-	}
-	return jsonResult;
-}
-
 module.exports = function(app, nodeuuid) {
 
 	app.post('/user', function(req, res){
@@ -78,16 +40,19 @@ module.exports = function(app, nodeuuid) {
 		req.checkBody('status', 'Invalid status').notEmpty().isInt();
 		var errors = req.validationErrors();
 		if (errors) {
-			var jsonResult = createResult(STATUS_FAIL, errors, null);
-			res.json(jsonResult,STATUS_FAIL);	
+			RM.createResult(STATUS_FAIL, errors, null, function(errResult, resResult){
+				res.json(resResult,STATUS_FAIL);	
+			});
 		}else{
 			LM.insertAccount(req.body, function(err, resResult){
-				if (err) {
-					var jsonResult = createResult(STATUS_FAIL, err, null);
-					res.json(jsonResult,STATUS_FAIL);	
+				if (resResult) {
+					RM.createResult(STATUS_SUCESS, SYSTEM_SUC, null, function(errResult, resResult){
+						res.json(resResult,STATUS_SUCESS);	
+					});
 				}else{
-					var jsonResult = createResult(STATUS_SUCESS, SYSTEM_SUC, null);
-					res.json(jsonResult,STATUS_SUCESS);	
+					RM.createResult(STATUS_FAIL, err, null, function(errResult, resResult){
+						res.json(resResult,STATUS_FAIL);	
+					});
 				}
 			})
 		}
@@ -108,21 +73,19 @@ module.exports = function(app, nodeuuid) {
 			var token = req.body.token;
 			LM.checkToken(token, function (err, objects) {
 				if (err) {
-					var jsonResult = createResult(STATUS_FAIL, err, null);
-					res.json(jsonResult, STATUS_FAIL);
-					return;
+					RM.createResult(STATUS_FAIL, err, null, function(errResult, resResult){
+						res.json(resResult,STATUS_FAIL);	
+					});
 				} else{
 					LM.changePassword(req.body, function(err, resDocument){
-						if(err){
-							var jsonResult = createResult(STATUS_FAIL, err, null);
-							res.json(jsonResult,STATUS_FAIL);
-							return;
+						if(resDocument){
+							RM.createResult(STATUS_SUCESS, SYSTEM_SUC, null, function(errResult, resResult){
+								res.json(resResult,STATUS_SUCESS);	
+							});
 						}else{
-							var jsonResult = createResult(STATUS_SUCESS, SYSTEM_SUC, null);
-							res.json(jsonResult,STATUS_SUCESS);
-							return;
-							
-							
+							RM.createResult(STATUS_FAIL, err, null, function(errResult, resResult){
+								res.json(resResult,STATUS_FAIL);	
+							});
 						}
 					});
 				}
@@ -135,26 +98,26 @@ module.exports = function(app, nodeuuid) {
 		req.checkBody('token', 'Invalid token').notEmpty();
 		var errors = req.validationErrors();
 		if (errors) {
-			var jsonResult = createResult(STATUS_FAIL, SYSTEM_ERR, null);
-			res.json(jsonResult,STATUS_FAIL);
-			return;
+			RM.createResult(STATUS_FAIL, errors, null, function(errResult, resResult){
+				res.json(resResult,STATUS_FAIL);	
+			});
 		}else{
 			var token = req.body.token;
 			LM.checkToken(token, function (err, objects) {
 				if (err) {
-					var jsonResult = createResult(STATUS_FAIL, SYSTEM_ERR, null);
-					res.json(jsonResult, STATUS_FAIL);
-					return;
+					RM.createResult(STATUS_FAIL, SYSTEM_ERR, null, function(errResult, resResult){
+						res.json(resResult,STATUS_FAIL);	
+					});
 				} else {
 					LM.updateAccount(req.body, function(err, resDocument){
 						if(resDocument){
-							var jsonResult = createResult(STATUS_SUCESS, SYSTEM_SUC, null);
-							res.json(jsonResult,STATUS_SUCESS);
-							return;
+							RM.createResult(STATUS_SUCESS, SYSTEM_SUC, null, function(errResult, resResult){
+								res.json(resResult,STATUS_SUCESS);	
+							});
 						}else{
-							var jsonResult = createResult(STATUS_FAIL, err, null);
-							res.json(jsonResult,STATUS_FAIL);
-							return;
+							RM.createResult(STATUS_FAIL, err, null, function(errResult, resResult){
+								res.json(resResult,STATUS_FAIL);	
+							});
 						}
 					});
 				}
@@ -167,26 +130,26 @@ module.exports = function(app, nodeuuid) {
 		req.checkBody('token', 'Invalid token').notEmpty();
 		var errors = req.validationErrors();
 		if (errors) {
-			var jsonResult = createResult(STATUS_FAIL, SYSTEM_ERR, null);
-			res.json(jsonResult,STATUS_FAIL);
-			return;
+			RM.createResult(STATUS_FAIL, errors, null, function(errResult, resResult){
+				res.json(resResult,STATUS_FAIL);	
+			});
 		}else{
 			var token = req.body.token;
 			LM.checkToken(token, function (err, objects) {
 				if (err) {
-					var jsonResult = createResult(STATUS_FAIL, SYSTEM_ERR, null);
-					res.json(jsonResult, STATUS_FAIL);
-					return;
+					RM.createResult(STATUS_FAIL, SYSTEM_ERR, null, function(errResult, resResult){
+						res.json(resResult,STATUS_FAIL);	
+					});
 				} else {
 					LM.deleteAccount(req.body, function(err, resDocument){
 						if(resDocument){
-							var jsonResult = createResult(STATUS_SUCESS, SYSTEM_SUC, null);
-							res.json(jsonResult,STATUS_SUCESS);
-							return;
+							RM.createResult(STATUS_SUCESS, SYSTEM_SUC, null, function(errResult, resResult){
+								res.json(resResult,STATUS_SUCESS);	
+							});
 						}else{
-							var jsonResult = createResult(STATUS_FAIL, err, null);
-							res.json(jsonResult,STATUS_FAIL);
-							return;
+							RM.createResult(STATUS_FAIL, err, null, function(errResult, resResult){
+								res.json(resResult,STATUS_FAIL);	
+							});
 						}
 					});
 				}
@@ -204,8 +167,9 @@ module.exports = function(app, nodeuuid) {
 		req.checkBody('password', 'Invalid password').notEmpty();
 		var errors = req.validationErrors();
 		if (errors) {
-			var jsonResult = createResult(STATUS_FAIL, errors, null);
-			res.json(jsonResult,STATUS_FAIL);	
+			RM.createResult(STATUS_FAIL, errors, null, function(errResult, resResult){
+				res.json(resResult,STATUS_FAIL);	
+			});
 		}else{
 			var input = req.body;
 			var userid = input.username;
@@ -213,16 +177,17 @@ module.exports = function(app, nodeuuid) {
 
 			LM.checkLogin(userid, password, function(err, objects) {
 				if (err) {
-					var jsonResult = createResult(STATUS_FAIL, err, null);
-					res.json(jsonResult, STATUS_FAIL);
+					RM.createResult(STATUS_FAIL, err, null, function(errResult, resResult){
+						res.json(resResult,STATUS_FAIL);	
+					});
 				} else if (objects != null && objects._id != undefined) {
 					var token = nodeuuid.v4();
 					LM.insertToken(userid, token,
 						function(err, objectsToken) {
 							if (err) {
-								var jsonResult = createResult(STATUS_FAIL, err, null);
-								res.json(jsonResult, STATUS_FAIL);
-								return;
+								RM.createResult(STATUS_FAIL, err, null, function(errResult, resResult){
+									res.json(resResult,STATUS_FAIL);	
+								});
 							} else {
 								var result = {
 									_id : objects._id,
@@ -235,13 +200,15 @@ module.exports = function(app, nodeuuid) {
 									token : objectsToken.token,
 									lastedit : objectsToken.iDate
 								}
-								var jsonResult = createResult(STATUS_SUCESS, SYSTEM_SUC, result);
-								res.json(jsonResult, STATUS_SUCESS);
+								RM.createResult(STATUS_SUCESS, SYSTEM_SUC, result, function(errResult, resResult){
+									res.json(resResult,STATUS_SUCESS);	
+								});
 							}
 						});
 				} else {
-					var jsonResult = createResult(STATUS_FAIL, MSG_LOGINFAIL, null);
-					res.json(jsonResult, STATUS_FAIL);
+					RM.createResult(STATUS_FAIL, MSG_LOGINFAIL, null, function(errResult, resResult){
+						res.json(resResult,STATUS_FAIL);	
+					});
 				}
 			});
 		}
@@ -251,11 +218,13 @@ module.exports = function(app, nodeuuid) {
 	app.post('/getuser', function(req, res){
 		LM.getUser(req.body, function(err, resDocument){
 			if(resDocument){
-				var jsonResult = createResult(STATUS_SUCESS, SYSTEM_SUC, resDocument);
-				res.json(jsonResult,STATUS_SUCESS);
+				RM.createResult(STATUS_SUCESS, SYSTEM_SUC, resDocument, function(errResult, resResult){
+					res.json(resResult,STATUS_SUCESS);	
+				});
 			}else{
-				var jsonResult = createResult(STATUS_FAIL, err, null);
-				res.json(jsonResult,STATUS_FAIL);
+				RM.createResult(STATUS_FAIL, err, null, function(errResult, resResult){
+					res.json(resResult,STATUS_FAIL);	
+				});
 			}
 		});
 	});
@@ -268,18 +237,20 @@ module.exports = function(app, nodeuuid) {
 		req.checkBody('token', 'Invalid token').notEmpty();
 		var errors = req.validationErrors();
 		if (errors) {
-			var jsonResult = createResult(STATUS_FAIL, errors, null);
-			res.json(jsonResult,STATUS_FAIL);	
+			RM.createResult(STATUS_FAIL, errors, null, function(errResult, resResult){
+				res.json(resResult,STATUS_FAIL);	
+			});
 		}else{
 			var token = req.body.token;
 			LM.logOut(token, function(err, objects) {
 				if (err) {
-					var jsonResult = createResult(STATUS_FAIL, err, null);
-					res.json(jsonResult, STATUS_FAIL);
-					return;
+					RM.createResult(STATUS_FAIL, err, null, function(errResult, resResult){
+						res.json(resResult,STATUS_FAIL);	
+					});
 				} else {
-					var jsonResult = createResult(STATUS_SUCESS, SYSTEM_SUC, null);
-					res.json(jsonResult, STATUS_SUCESS);
+					RM.createResult(STATUS_SUCESS, SYSTEM_SUC, null, function(errResult, resResult){
+						res.json(resResult,STATUS_SUCESS);	
+					});
 				}
 			});
 		}

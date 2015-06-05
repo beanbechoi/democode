@@ -17,6 +17,7 @@ module.exports.insertCatetory = function(document, callback) {
 			document._id = id_seq;
 			document.date_create = date;
 			document.date_edit = date;
+			delete document.token;
 			if (_.isNumber(document.parentID)) {
 				document.parentID = parseInt(document.parentID);
 			} 

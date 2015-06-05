@@ -161,7 +161,11 @@ require('use-strict')
 // require('./app/server/socket.io/real_time')(app,server);
 require('./app/server/routes/categories')(app);
 require('./app/server/routes/login')(app, node_uuid);
-
+require('./app/server/routes/news')(app);
+require('./app/server/routes/emails')(app);
+require('./app/server/routes/pages')(app);
+require('./app/server/routes/topics')(app);
+require('./app/server/routes/videos')(app);
 /**
 * RUN
 * -------------------------------------------------------------------------------------------------

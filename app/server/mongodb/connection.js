@@ -58,38 +58,17 @@ db.open(function(error, d){
 
 module.exports = {
 		categories:db.collection('categories'),
-		// counters:db.collection('counters'),
 		sequence:db.collection('sequence'),
 		systemstatus:db.collection('systemstatus'),
 		account:db.collection('account'),
 		crypto:crypto,
-
-		//old code
-		user_status:db.collection('user_status'),
-		chats:db.collection('chats'),
-		category:db.collection('category'),
-		places:db.collection('places'),
-		images:db.collection('images'),
-		comment:db.collection('comment'),
-		likes:db.collection('likes'),
-		friends:db.collection('friends'),
-		citys:db.collection('citys'),
-		messages:db.collection('messages'),
-		friend_connec:db.collection('friend_connec'),
 		ObjectID:ObjectID,
-		wall:db.collection('wall'),
-		trip_place_temp:db.collection('trip_place_temp'),
-		after_place:db.collection('after_place'),
-		tags:db.collection('tags'),
-		trips:db.collection('trips'),
-		trip_details:db.collection('trip_details'),
-		img_chat:db.collection('img_chat'),
-		hotel:db.collection('hotel'),
-		hotel_room:db.collection('hotel_room'),
-		hotel_order:db.collection('hotel_order'),
-		hotel_order_room:db.collection('hotel_order_room'),
-		food:db.collection('food'),
-		food_order:db.collection('food_order'),
-		room_map:db.collection('room_map'),
+		
+		news:db.collection('news'),
+		pages:db.collection('pages'),
+		emails:db.collection('emails'),
+		topics:db.collection('topics'),
+		videos:db.collection('videos'),
+		categoriesnew:db.collection('categoriesnew'),
 		moment:moment 
-}
+};
