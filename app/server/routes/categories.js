@@ -1,5 +1,6 @@
 var CM = require('../modules/categories-manager');
 var LM = require('../modules/login-manager')
+var RM = require('../modules/result-manager');
 var util = require('util');
 // --------------------------------
 // Define Variable Category Object
@@ -27,69 +28,10 @@ var STATUS_FAIL = 400;
 var MSG_LOGINFAIL = 'Username or password is not correctly';
 var MSG_INVALID_TOKEN = 'Your token is invalid';
 
-// --------------------------------
-// SAMPLE RESULT JSON
-// param func: function name excute
-// mthod: method excute [POST/GET]
-// stt: result status of function
-// msg: message status
-// err: error detail of result excute function
-// res: result of function
-// Return: json result
-// --------------------------------
-function createJsonResult(func,mthod,stt,msg,err,res){
-	var jsonResult = {	func_cd: func,
-		method: mthod,
-		code: stt,
-		msg: msg,
-		error: err,
-		data: res,
-	};
-	return jsonResult;
-}
-
-function createResult(stt,msg, res){
-	var jsonResult;
-	if (res !== null) {
-		jsonResult = {	
-						code: stt,
-						msg: msg,
-						data: res
-					};
-	}else{
-		jsonResult = {	
-						code: stt,
-						msg: msg
-					};
-	}
-	return jsonResult;
-}
-
-// --------------------------------
-// VALIDATE PARAMETER
-// value: value of parameter
-// type: type of parameter
-// Return: json_ result
-// --------------------------------
-function validateParam(value, type){
-	// TYPE 1 : OBJECTID
-	if( type == 1){
-		if( value == null){
-			return "Locationid is null !";
-		} else if(value.length != 24){
-			return "Length of locationid is not valid !";
-		} else {
-			return "";
-		}
-	} else {
-		return "";
-	}
-}
-
 module.exports = function(app, server) {
 	// register category form action
 	app.post('/category', function(req, res){
-
+		
 		req.checkBody('token', 'Invalid token').notEmpty();
 		req.checkBody('title', 'Invalid title').notEmpty();
 		req.checkBody('alias', 'Invalid alias').notEmpty();
@@ -100,105 +42,130 @@ module.exports = function(app, server) {
 		}
 		var errors = req.validationErrors();
 		if (errors) {
-			var jsonResult = createResult(STATUS_FAIL, errors, null);
-			res.json(jsonResult,STATUS_FAIL);	
+			RM.createResult(STATUS_FAIL, errors, null, function(errResult, resResult){
+				res.json(resResult,STATUS_FAIL);	
+			});
 		}else{
 			var token = req.body.token;
 			LM.checkToken(token, function (err, objects) {
 				if (err) {
-					var jsonResult = createResult(STATUS_FAIL, err, null);
-					res.json(jsonResult, STATUS_FAIL);
-					return;
-				} else if(objects != null && objects.userid != undefined ){
+					RM.createResult(STATUS_FAIL, err, null, function(errResult, resResult){
+						res.json(resResult,STATUS_FAIL);	
+					});
+				} else{
 					CM.insertCatetory(req.body, function(err,resDocument){
 						if(resDocument){
-							var jsonResult = createResult(STATUS_SUCESS, SYSTEM_SUC, null);
-							res.json(jsonResult,STATUS_SUCESS);
+							RM.createResult(STATUS_SUCESS, SYSTEM_SUC, null, function(errResult, resResult){
+								res.json(resResult,STATUS_SUCESS);	
+							});
 						}else{
-							var jsonResult = createResult(STATUS_FAIL, err, null);
-							res.json(jsonResult,STATUS_FAIL);
+							RM.createResult(STATUS_FAIL, err, null, function(errResult, resResult){
+								res.json(resResult,STATUS_FAIL);	
+							});
 						}
 					});
-				}else{
-					var jsonResult = createResult(STATUS_FAIL, MSG_INVALID_TOKEN, null);
-					res.json(jsonResult, STATUS_FAIL);
 				}
 			});
 		}
 	});
 
-	app.put('/category', function(req, res){
-		req.checkBody('token', 'Invalid token').notEmpty();
-		var errors = req.validationErrors();
-		if (errors) {
-			var jsonResult = createResult(STATUS_FAIL, errors, null);
-			res.json(jsonResult,STATUS_FAIL);	
-		}else{
-			var token = req.body.token;
-			LM.checkToken(token, function (err, objects) {
-				if (err) {
-					var jsonResult = createResult(STATUS_FAIL, err, null);
-					res.json(jsonResult, STATUS_FAIL);
-					return;
-				} else if(objects != null && objects.userid != undefined ){
-					CM.updateCategory(req.body, function(err, resDocument){
-						if(resDocument){
-							var jsonResult = createResult(STATUS_SUCESS, SYSTEM_SUC, null);
-							res.json(jsonResult,STATUS_SUCESS);
-						}else{
-							var jsonResult = createResult(STATUS_FAIL, err, null);
-							res.json(jsonResult,STATUS_FAIL);
-						}
-					});
-				}else{
-					var jsonResult = createResult(STATUS_FAIL, MSG_INVALID_TOKEN, null);
-					res.json(jsonResult, STATUS_FAIL);
-				}
-			});
-		}
-	});
-
-	
-
-	app.del('/category',function(req, res){
-		req.checkBody('token', 'Invalid token').notEmpty();
-		var errors = req.validationErrors();
-		if (errors) {
-			var jsonResult = createResult(STATUS_FAIL, errors, null);
-			res.json(jsonResult,STATUS_FAIL);	
-		}else{
-			var token = req.body.token;
-			LM.checkToken(token, function (err, objects) {
-				if (err) {
-					var jsonResult = createResult(STATUS_FAIL, err, null);
-					res.json(jsonResult, STATUS_FAIL);
-				} else if(objects != null && objects.userid != undefined ){
-					CM.deleteCategory(req.body.categoryID, function(err, resDocument){
-						if (resDocument) {
-							var jsonResult = createResult(STATUS_SUCESS, SYSTEM_SUC, null);
-							res.json(jsonResult,STATUS_SUCESS);
-						}else{
-							var jsonResult = createResult(STATUS_FAIL, err, null);
-							res.json(jsonResult,STATUS_FAIL);
-						}
-					});
-				}else{
-					var jsonResult = createResult(STATUS_FAIL, MSG_INVALID_TOKEN, null);
-					res.json(jsonResult, STATUS_FAIL);
-				}
-			});
-		}
-	});
-
-	app.post('/getcategory', function(req, res){
-		CM.getAllCategory(req.body, function(err, resDocument){
-			if(resDocument){
-				var jsonResult = createResult(STATUS_SUCESS, SYSTEM_SUC, resDocument);
-				res.json(jsonResult,STATUS_SUCESS);
-			}else{
+app.put('/category', function(req, res){
+	req.checkBody('token', 'Invalid token').notEmpty();
+	var errors = req.validationErrors();
+	if (errors) {
+		RM.createResult(STATUS_FAIL, errors, null, function(errResult, resResult){
+			res.json(resResult,STATUS_FAIL);	
+		});
+	}else{
+		var token = req.body.token;
+		LM.checkToken(token, function (err, objects) {
+			if (err) {
 				var jsonResult = createResult(STATUS_FAIL, err, null);
-				res.json(jsonResult,STATUS_FAIL);
+				res.json(jsonResult, STATUS_FAIL);
+				return;
+			} else{
+				CM.updateCategory(req.body, function(err, resDocument){
+					if(resDocument){
+						RM.createResult(STATUS_SUCESS, SYSTEM_SUC, null, function(errResult, resResult){
+							res.json(resResult,STATUS_SUCESS);	
+						});
+					}else{
+						RM.createResult(STATUS_FAIL, err, null, function(errResult, resResult){
+							res.json(resResult,STATUS_FAIL);	
+						});
+					}
+				});
 			}
 		});
+	}
+});
+
+app.delete('/category',function(req, res){
+	req.checkBody('token', 'Invalid token').notEmpty();
+	var errors = req.validationErrors();
+	if (errors) {
+		RM.createResult(STATUS_FAIL, errors, null, function(errResult, resResult){
+			res.json(resResult,STATUS_FAIL);	
+		});	
+	}else{
+		var token = req.body.token;
+		LM.checkToken(token, function (err, objects) {
+			if (err) {
+				RM.createResult(STATUS_FAIL, err, null, function(errResult, resResult){
+					res.json(resResult,STATUS_FAIL);	
+				});
+			} else {
+				CM.deleteCategory(req.body.categoryID, function(err, resDocument){
+					if (resDocument) {
+						RM.createResult(STATUS_SUCESS, SYSTEM_SUC, null, function(errResult, resResult){
+							res.json(resResult,STATUS_SUCESS);	
+						});
+					}else{
+						RM.createResult(STATUS_FAIL, err, null, function(errResult, resResult){
+							res.json(resResult,STATUS_FAIL);	
+						});
+					}
+				});
+			}
+		});
+	}
+});
+
+app.post('/getCategoryByID', function(req, res){
+	req.checkBody('_id', 'Invalid categoryID').notEmpty();
+	var errors = req.validationErrors();
+	if (errors) {
+		RM.createResult(STATUS_FAIL, errors, null, function(errResult, resResult){
+			res.json(resResult,STATUS_FAIL);	
+		});
+	}else{
+		CM.getCategoryByID(req.body, function(err, resDocument){
+			if(resDocument){
+				RM.createResult(STATUS_SUCESS, SYSTEM_SUC, resDocument, function(errResult, resResult){
+					res.json(resResult,STATUS_SUCESS);	
+				});
+			}else{
+				RM.createResult(STATUS_FAIL, err, null, function(errResult, resResult){
+					res.json(resResult,STATUS_FAIL);	
+				});
+			}
+		});
+	}
+
+});
+
+app.post('/getAllCategory', function(req, res){
+	CM.getAllCategory(req.body, function(err, resDocument){
+		if(resDocument){
+			RM.createResult(STATUS_SUCESS, SYSTEM_SUC, resDocument, function(errResult, resResult){
+				res.json(resResult,STATUS_SUCESS);	
+			});
+		}else{
+			RM.createResult(STATUS_FAIL, err, null, function(errResult, resResult){
+				res.json(resResult,STATUS_FAIL);	
+			});
+		}
 	});
-};
+});
+
+}

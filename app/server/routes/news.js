@@ -30,129 +30,176 @@ module.exports = function(app, server) {
 	
 	// Add news
 	app.post('/news', function (req, res) {
+
+
 		req.checkBody('title', 'Invalid title').notEmpty();
+		req.checkBody('token', 'Invalid token').notEmpty();
 		var errors = req.validationErrors();
 		if (errors) {
 			RM.createResult(STATUS_FAIL, errors, null, function(errResult, resResult){
 				res.json(resResult,STATUS_FAIL);	
 			});
 		}else{
-			var document = {
-				title : req.param('title'),
-				alias : req.param('alias'),
-				date_create : req.param('date_create'),
-				date_edit : req.param('date_edit'),
-				date_public : req.param('date_public'),
-				date_start_event : req.param('date_start_event'),
-				status : req.param('status'),
-				image : req.param('image'),
-				is_hot : req.param('is_hot'),
-				hot_image : req.param('hot_image'),
-				cat_id : req.param('cat_id'),
-				user_create : req.param('user_create'),
-				user_approved : req.param('user_approved'),
-				descript : req.param('descript'),
-				content : req.param('content'),
-				data_temp : req.param('data_temp')
-			};
-			NM.insertNews(document, function(errResult, resResult){
-				if (errResult) {
-					RM.createResult(STATUS_FAIL, errResult, null, function(errJson, resJson){
-						res.json(resJson, STATUS_FAIL);	
-					});	
-				}else{
-					RM.createResult(STATUS_SUCESS, SYSTEM_SUC, null, function(errJson, resJson){
-						res.json(resResult, STATUS_SUCESS);	
+			LM.checkToken(token, function (err, objects) {
+				if (err) {
+					RM.createResult(STATUS_FAIL, err, null, function(errResult, resResult){
+						res.json(resResult,STATUS_FAIL);	
 					});
-				}	
-			});
-		}
-	});
-	
-	// Get news with id of news
-	app.get('/news', function (req, res) {
-		var idItem = req.query._id;
-		if(idItem != undefined){
-			NM.getItemNews(idItem, function(errResult, resResult){
-				if (errResult) {
-					RM.createResult(STATUS_FAIL, errResult, null, function(errJson, resJson){
-						res.json(resJson, STATUS_FAIL);	
-					});	
-				}else{
-					RM.createResult(STATUS_SUCESS, SYSTEM_SUC, null, function(errJson, resJson){
-						res.json(resResult, STATUS_SUCESS);	
+				} else{
+					NM.insertNews(req.body, function(errResult, resResult){
+						if (errResult) {
+							RM.createResult(STATUS_FAIL, errResult, null, function(errJson, resJson){
+								res.json(resJson, STATUS_FAIL);	
+							});	
+						}else{
+							RM.createResult(STATUS_SUCESS, SYSTEM_SUC, null, function(errJson, resJson){
+								res.json(resJson, STATUS_SUCESS);	
+							});
+						}	
 					});
 				}
 			});
+			
 		}
 	});
+	
 	
 	// Edit item of news
 	app.put('/news', function (req, res) {
 		req.checkBody('_id', 'Invalid title').notEmpty();
 		req.checkBody('title', 'Invalid title').notEmpty();
-		//...
-		//...
+		req.checkBody('token', 'Invalid token').notEmpty();
 		var errors = req.validationErrors();
 		if (errors) {
 			RM.createResult(STATUS_FAIL, errors, null, function(errResult, resResult){
 				res.json(resResult,STATUS_FAIL);	
 			});
 		}else{
-			var idNews = req.param('_id');
-			var document = {
-				title : req.param('title'),
-				alias : req.param('alias'),
-				date_create : req.param('date_create'),
-				date_edit : req.param('date_edit'),
-				date_public : req.param('date_public'),
-				date_start_event : req.param('date_start_event'),
-				status : req.param('status'),
-				image : req.param('image'),
-				is_hot : req.param('is_hot'),
-				hot_image : req.param('hot_image'),
-				cat_id : req.param('cat_id'),
-				user_create : req.param('user_create'),
-				user_approved : req.param('user_approved'),
-				descript : req.param('descript'),
-				content : req.param('content'),
-				data_temp : req.param('data_temp')
-			};
-			NM.updateNews(idNews, document, function(errResult, resResult){
-				if (errResult) {
-					RM.createResult(STATUS_FAIL, errResult, null, function(errJson, resJson){
-						res.json(resJson, STATUS_FAIL);	
-					});	
-				}else{
-					RM.createResult(STATUS_SUCESS, SYSTEM_SUC, null, function(errJson, resJson){
-						res.json(resResult, STATUS_SUCESS);	
+			LM.checkToken(token, function (err, objects) {
+				if (err) {
+					RM.createResult(STATUS_FAIL, err, null, function(errResult, resResult){
+						res.json(resResult,STATUS_FAIL);	
 					});
-				}	
+				} else{
+					NM.updateNews(req.body, function(errResult, resResult){
+						if (errResult) {
+							RM.createResult(STATUS_FAIL, errResult, null, function(errJson, resJson){
+								res.json(resJson, STATUS_FAIL);	
+							});	
+						}else{
+							RM.createResult(STATUS_SUCESS, SYSTEM_SUC, null, function(errJson, resJson){
+								res.json(resJson, STATUS_SUCESS);	
+							});
+						}	
+					});
+				}
 			});
+			
 		}
 	});
 	
 	// Edit item of news
 	app.put('/updatestatus', function (req, res) {
-		req.checkBody('_id', 'Invalid _id').notEmpty();
+		req.checkBody('_id', 'Invalid _id').notEmpty().isInt();
 		req.checkBody('status', 'Invalid status').notEmpty();
 		req.checkBody('user_create', 'Invalid user_create').notEmpty();
-		
+		req.checkBody('token', 'Invalid token').notEmpty();
 		var errors = req.validationErrors();
 		if (errors) {
 			RM.createResult(STATUS_FAIL, errors, null, function(errResult, resResult){
 				res.json(resResult,STATUS_FAIL);	
 			});
 		}else{
-			var idNews = req.param('_id');
-			var user_create = req.param('user_create');
-			var status = req.param('status');
-			NM.checkEixtNewsOfUser(idNews, user_create, status, function(errFlag, resFlag){
-				RM.createResult(STATUS_SUCESS, SYSTEM_SUC, null, function(errJson, resJson){
-					res.json(resFlag, STATUS_SUCESS);	
-				});
+			LM.checkToken(token, function (err, objects) {
+				if (err) {
+					RM.createResult(STATUS_FAIL, err, null, function(errResult, resResult){
+						res.json(resResult,STATUS_FAIL);	
+					});
+				} else{
+					var idNews = req.body._id;
+					var user_create = req.body.user_create;
+					var status = req.body.status;
+					NM.checkEixtNewsOfUser(idNews, user_create, status, function(errFlag, resFlag){
+						RM.createResult(STATUS_SUCESS, SYSTEM_SUC, null, function(errJson, resJson){
+							res.json(resJson, STATUS_SUCESS);	
+						});
+					});
+				}
 			});
+			
 		}
 	});
-	 
+
+	// Get news with id of news
+	app.post('/getNewsByID', function (req, res) {
+		req.checkBody('_id', 'Invalid _id').notEmpty().isInt();
+		var errors = req.validationErrors();
+		if (errors) {
+			RM.createResult(STATUS_FAIL, errors, null, function(errResult, resResult){
+				res.json(resResult,STATUS_FAIL);	
+			});
+		}else{
+			NM.getItemNews(req.body._id, function(errResult, resResult){
+				if (errResult) {
+					RM.createResult(STATUS_FAIL, errResult, null, function(errJson, resJson){
+						res.json(resJson, STATUS_FAIL);	
+					});	
+				}else{
+					RM.createResult(STATUS_SUCESS, SYSTEM_SUC, resResult, function(errJson, resJson){
+						res.json(resJson, STATUS_SUCESS);	
+					});
+				}
+			});
+		}
+		
+	});
+
+	app.post('/getNews', function (req, res) {
+		NM.getAllItemNews(req.body, function(errResult, resResult){
+			if (errResult) {
+				RM.createResult(STATUS_FAIL, errResult, null, function(errJson, resJson){
+					res.json(resJson, STATUS_FAIL);	
+				});	
+			}else{
+				RM.createResult(STATUS_SUCESS, SYSTEM_SUC, resResult, function(errJson, resJson){
+					res.json(resJson, STATUS_SUCESS);	
+				});
+			}
+		});
+	});
+
+	// Get news with id of news
+	app.delete('/news', function (req, res) {
+		req.checkBody('_id', 'Invalid _id').notEmpty().isInt();
+		req.checkBody('token', 'Invalid token').notEmpty();
+		var errors = req.validationErrors();
+		if (errors) {
+			RM.createResult(STATUS_FAIL, errors, null, function(errResult, resResult){
+				res.json(resResult,STATUS_FAIL);	
+			});
+		}else{
+			LM.checkToken(token, function (err, objects) {
+				if (err) {
+					RM.createResult(STATUS_FAIL, err, null, function(errResult, resResult){
+						res.json(resResult,STATUS_FAIL);	
+					});
+				} else{
+					NM.deleteNews(req.body._id, function(errResult, resResult){
+						if (errResult) {
+							RM.createResult(STATUS_FAIL, errResult, null, function(errJson, resJson){
+								res.json(resJson, STATUS_FAIL);	
+							});	
+						}else{
+							RM.createResult(STATUS_SUCESS, SYSTEM_SUC, null, function(errJson, resJson){
+								res.json(resJson, STATUS_SUCESS);	
+							});
+						}
+					});
+				}
+			});
+			
+		}
+		
+	});
+
 };

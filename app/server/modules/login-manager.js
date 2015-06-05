@@ -2,7 +2,10 @@ var cnMongoDB = require('../mongodb/connection');
 var seq_mod = require('../modules/sequence-manager');
 var crypto = require('crypto');
 var accountDB = cnMongoDB.account;
+var _ = require('../modules/underscore');
 var systemDB = cnMongoDB.systemstatus;
+
+var MSG_INVALID_TOKEN = 'Your token is invalid';
 
 module.exports.insertAccount = function(document, callback){
 	callback = (typeof callback === 'function') ? callback : function() {
@@ -182,8 +185,12 @@ module.exports.checkToken = function(token, callback) {
 	}, function(err, result) {
 		if (err)
 			callback(err, 'Can not check token');
-		else
+		else if(result != null && result.userid != undefined ){
 			callback(null, result);
+		}else{
+			callback(MSG_INVALID_TOKEN, null);
+		}
+			
 	});
 }
 
@@ -232,7 +239,36 @@ module.exports.addUser = function(userid, password, username, email, phone,
 	});
 }
 
-// Update comment and like
+module.exports.changePassword = function(document, callback){
+	callback = (typeof callback === 'function') ? callback : function() {
+	};
+	accountDB.findOne({
+		$and : [ {
+			"userid" : parseInt(document.userid),
+			"password" : document.old_password
+		} ]
+	}, function(err, result) {
+		if (err)
+			return callback('Old Password incorrect', null);
+		else if(result != null && !_.isUndefined(result)){
+			accountDB.update({
+				'userid' : parseInt(document.userid)
+			}, {
+				$set : {
+					password : document.new_password
+				}
+			}, function(err, result) {
+				if (err)
+					return callback('Can not update user', null);
+				else
+					return callback(null, 'ok');
+			});
+		}
+		else
+			return callback('Old Password incorrect', null);
+	});
+
+}
 module.exports.updatePassWord = function(userid, ipass, callback) {
 	callback = (typeof callback === 'function') ? callback : function() {
 	};

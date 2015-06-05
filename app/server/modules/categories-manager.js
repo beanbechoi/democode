@@ -17,6 +17,7 @@ module.exports.insertCatetory = function(document, callback) {
 			document._id = id_seq;
 			document.date_create = date;
 			document.date_edit = date;
+			delete document.token;
 			if (_.isNumber(document.parentID)) {
 				document.parentID = parseInt(document.parentID);
 			} 
@@ -36,24 +37,72 @@ module.exports.insertCatetory = function(document, callback) {
 module.exports.getAllCategory = function(document, callback){
 	callback = (typeof callback === 'function') ? callback : function() {
 	};
-
 	categories.find({parentID:0}).toArray(function(e, res){
 		if (e) {
-			callback(e, null);
+			callback(e,null);
 		}else{
-			callback(null, res);
-//			for (var obj in res){
-//				var child = categories.find({parentID:obj.parentID}).toArray();
-//				for (var obj1 in child){
-//					var child1 = categories.find({parentID:obj1.parentID}).toArray();
-//					obj1.child = child1;
-//				}
-//				obj.child = child;
-//			}
+			var Fiber;
+			Fiber = require('fibers');
+			Fiber(function() {
+				var Server = require("mongo-sync").Server;
+				var server = new Server('localhost');
+				for (var i = res.length - 1; i >= 0; i--) {
+					var obj = res[i];
+					var child = server.db("TodayVoice").getCollection("categories").find({parentID: obj._id}).toArray();
+					if(!_.isUndefined(child) && child.length > 0){
+						for (var j = child.length - 1; j >= 0; j--) {
+							var obj1 = child[j];
+							var child1 = server.db("TodayVoice").getCollection("categories").find({parentID: obj1._id}).toArray();
+							if(!_.isUndefined(child1) && child1.length > 0){
+								obj1.child = child1;
+							}
+							
+						}
+						obj.child = child;
+					}	
+				};
+				callback(null,res);
+				return server.close();
+			}).run();
+		}
+	})
+};
+module.exports.getCategoryByID = function(document, callback){
+	callback = (typeof callback === 'function') ? callback : function() {
+	};
+	categories.find({_id:parseInt(document._id)}).toArray(function(e, res){
+		if (e) {
+			callback(e,null);
+		}else{
+			if(!_.isUndefined(res) && res.length > 0){
+				var Fiber;
+				Fiber = require('fibers');
+				Fiber(function() {
+					var Server = require("mongo-sync").Server;
+					var server = new Server('localhost');
+					var obj = res[0];
+					var child = server.db("TodayVoice").getCollection("categories").find({parentID: obj._id}).toArray();
+					if(!_.isUndefined(child) && child.length > 0){
+						for (var j = child.length - 1; j >= 0; j--) {
+							var obj1 = child[j];
+							var child1 = server.db("TodayVoice").getCollection("categories").find({parentID: obj1._id}).toArray();
+							if(!_.isUndefined(child1) && child1.length > 0){
+								obj1.child = child1;
+							}
+							
+						}
+						obj.child = child;
+					}
+					callback(null,res);
+					return server.close();
+				}).run();
+			}else{
+				callback('not found',null);
+			}
 			
 		}
-	});
-}
+	})
+};
 module.exports.getCategory = function(document, callback) {
 	callback = (typeof callback === 'function') ? callback : function() {
 	};
