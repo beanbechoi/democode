@@ -67,9 +67,9 @@ module.exports = function(app, nodeuuid) {
 		req.checkBody('new_password', 'Invalid new_password').notEmpty();
 		var errors = req.validationErrors();
 		if (errors) {
-			var jsonResult = createResult(STATUS_FAIL, errors, null);
-			res.json(jsonResult,STATUS_FAIL);
-			return;
+			RM.createResult(STATUS_FAIL, errors, null, function(errResult, resResult){
+				res.json(resResult,STATUS_FAIL);	
+			});
 		}else{
 			var token = req.body.token;
 			LM.checkToken(token, function (err, objects) {
@@ -199,7 +199,8 @@ module.exports = function(app, nodeuuid) {
 									last_login : objects.last_login,
 									ip_reg : objects.ip_reg,
 									token : objectsToken.token,
-									lastedit : objectsToken.iDate
+									lastedit : objectsToken.iDate,
+									userid : objects.userid
 								}
 								RM.createResult(STATUS_SUCESS, SYSTEM_SUC, result, function(errResult, resResult){
 									res.json(resResult,STATUS_SUCESS);	

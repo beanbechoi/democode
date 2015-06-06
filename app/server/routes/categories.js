@@ -71,6 +71,7 @@ module.exports = function(app, server) {
 
 app.put('/category', function(req, res){
 	req.checkBody('token', 'Invalid token').notEmpty();
+	req.checkBody('parentID', 'Invalid parentID').notEmpty().isInt();
 	var errors = req.validationErrors();
 	if (errors) {
 		RM.createResult(STATUS_FAIL, errors, null, function(errResult, resResult){
@@ -102,6 +103,7 @@ app.put('/category', function(req, res){
 
 app.delete('/category',function(req, res){
 	req.checkBody('token', 'Invalid token').notEmpty();
+	req.checkBody('_id', 'Invalid _id').notEmpty().isInt();
 	var errors = req.validationErrors();
 	if (errors) {
 		RM.createResult(STATUS_FAIL, errors, null, function(errResult, resResult){
@@ -115,7 +117,7 @@ app.delete('/category',function(req, res){
 					res.json(resResult,STATUS_FAIL);	
 				});
 			} else {
-				CM.deleteCategory(req.body.categoryID, function(err, resDocument){
+				CM.deleteCategory(req.body._id, function(err, resDocument){
 					if (resDocument) {
 						RM.createResult(STATUS_SUCESS, SYSTEM_SUC, null, function(errResult, resResult){
 							res.json(resResult,STATUS_SUCESS);	

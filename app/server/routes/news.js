@@ -1,5 +1,6 @@
 var NM = require('../modules/news-manager');
 var RM = require('../modules/result-manager');
+var LM = require('../modules/login-manager')
 var crypto = require('crypto');
 // --------------------------------
 // Define Variable Category Object
@@ -40,6 +41,7 @@ module.exports = function(app, server) {
 				res.json(resResult,STATUS_FAIL);	
 			});
 		}else{
+			var token = req.body.token;
 			LM.checkToken(token, function (err, objects) {
 				if (err) {
 					RM.createResult(STATUS_FAIL, err, null, function(errResult, resResult){
@@ -75,6 +77,7 @@ module.exports = function(app, server) {
 				res.json(resResult,STATUS_FAIL);	
 			});
 		}else{
+			var token = req.body.token;
 			LM.checkToken(token, function (err, objects) {
 				if (err) {
 					RM.createResult(STATUS_FAIL, err, null, function(errResult, resResult){
@@ -110,6 +113,7 @@ module.exports = function(app, server) {
 				res.json(resResult,STATUS_FAIL);	
 			});
 		}else{
+			var token = req.body.token;
 			LM.checkToken(token, function (err, objects) {
 				if (err) {
 					RM.createResult(STATUS_FAIL, err, null, function(errResult, resResult){
@@ -161,12 +165,31 @@ module.exports = function(app, server) {
 					res.json(resJson, STATUS_FAIL);	
 				});	
 			}else{
-				RM.createResult(STATUS_SUCESS, SYSTEM_SUC, resResult, function(errJson, resJson){
+				var total = resResult.total;
+				var count = resResult.count;
+				var data = resResult.data;
+				RM.createResult(STATUS_SUCESS, SYSTEM_SUC, data, function(errJson, resJson){
+					resJson.total = total;
+					resJson.count = count;
 					res.json(resJson, STATUS_SUCESS);	
 				});
 			}
 		});
 	});
+
+	// app.post('/getNewsByCond', function (req, res) {
+	// 	NM.getAllItemNews(req.body, function(errResult, resResult){
+	// 		if (errResult) {
+	// 			RM.createResult(STATUS_FAIL, errResult, null, function(errJson, resJson){
+	// 				res.json(resJson, STATUS_FAIL);	
+	// 			});	
+	// 		}else{
+	// 			RM.createResult(STATUS_SUCESS, SYSTEM_SUC, resResult, function(errJson, resJson){
+	// 				res.json(resJson, STATUS_SUCESS);	
+	// 			});
+	// 		}
+	// 	});
+	// });
 
 	// Get news with id of news
 	app.delete('/news', function (req, res) {
@@ -178,6 +201,7 @@ module.exports = function(app, server) {
 				res.json(resResult,STATUS_FAIL);	
 			});
 		}else{
+			var token = req.body.token;
 			LM.checkToken(token, function (err, objects) {
 				if (err) {
 					RM.createResult(STATUS_FAIL, err, null, function(errResult, resResult){

@@ -71,24 +71,26 @@ process.on('uncaughtException', function(err) {
 	console.log('Caught exception: ' + err);
 });
 
-/**
- * ROUTING
- * -------------------------------------------------------------------------------------------------
- * include a route file for each major area of functionality in the site
- */
-require('./app/server/routes/news')(app);
-require('./app/server/routes/pages')(app);
-require('./app/server/routes/emails')(app);
-require('./app/server/routes/videos')(app);
-require('./app/server/routes/categoriesNew')(app);
-require('use-strict');
-require('./app/server/routes/categories')(app);
+* ROUTING
+* -------------------------------------------------------------------------------------------------
+* include a route file for each major area of functionality in the site
+**/
+// require('./app/server/routes/home')(app);
+// require('./app/server/routes/account')(app);
+// require('./app/server/routes/image')(app);
+// require('./app/server/routes/chat')(app);
+// require('./app/server/routes/place')(app,async);
+// require('./app/server/routes/findplace')(app);
+// require('./app/server/routes/profile')(app);
+require('use-strict')
+// require('./app/server/socket.io/real_time')(app,server);
+require('./app/server/routes/categories')(app, node_uuid);
 require('./app/server/routes/login')(app, node_uuid);
-require('./app/server/routes/news')(app);
-require('./app/server/routes/emails')(app);
-require('./app/server/routes/pages')(app);
-require('./app/server/routes/topics')(app);
-require('./app/server/routes/videos')(app);
+require('./app/server/routes/news')(app, node_uuid);
+require('./app/server/routes/emails')(app, node_uuid);
+require('./app/server/routes/pages')(app, node_uuid);
+require('./app/server/routes/topics')(app, node_uuid);
+require('./app/server/routes/videos')(app, node_uuid);
 /**
  * RUN
  * -------------------------------------------------------------------------------------------------
