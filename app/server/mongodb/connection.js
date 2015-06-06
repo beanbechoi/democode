@@ -5,8 +5,8 @@ var moment 		= require('moment');
 var ObjectID	= require('mongodb').ObjectID;
 
 var dbPort 		= 27017;
-// var dbHost 		= '54.169.67.166';
-var dbHost 		= 'localhost';
+var dbHost 		= '54.169.67.166';
+// var dbHost 		= 'localhost';
 var dbName 		= 'TodayVoice';
 
 /* establish the database connection  */

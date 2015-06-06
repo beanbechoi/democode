@@ -69,6 +69,7 @@ exports.getItemNews = function(idItem, callback){
 	});
 };
 exports.getAllItemNews = function(document, callback){
+
 	var limit = parseInt(document.limit);
 	var skip = parseInt(document.skip);
 	var order = document.order;
@@ -76,14 +77,27 @@ exports.getAllItemNews = function(document, callback){
 	delete document.skip;
 	delete document.order;
 	delete document.token;
+
 	if(!_.isUndefined(document._id) && document._id.length > 0){
 		document._id = parseInt(document._id);
 	}
 	
-	news.find(document).toArray(function(err, res){
+	news.find(document).limit(limit).skip(skip).sort([[order, 'asc'] ]).toArray(function(err, res){
 		if(res){
-			callback(null, res);
+			news.find(document).count(function(err, count){
+				if (err) {
+					callback(err, null);
+				}else{
+					var result = {
+						'total' : count,
+						'count' : res.length,
+						'data' : res 
+					}
+			    	callback(null, result);
+				}
+			});
 		}else{
+
 			callback(err,null);
 		}
 	});

@@ -20,7 +20,9 @@ module.exports.insertCatetory = function(document, callback) {
 			delete document.token;
 			if (_.isNumber(document.parentID)) {
 				document.parentID = parseInt(document.parentID);
-			} 
+			} else{
+				document.parentID = 0;
+			}
 			categories.insert(document, {
 				safe : true
 			}, function(errDocument, resDocument) {
@@ -45,7 +47,7 @@ module.exports.getAllCategory = function(document, callback){
 			Fiber = require('fibers');
 			Fiber(function() {
 				var Server = require("mongo-sync").Server;
-				var server = new Server('localhost');
+				var server = new Server('54.169.67.166');
 				for (var i = res.length - 1; i >= 0; i--) {
 					var obj = res[i];
 					var child = server.db("TodayVoice").getCollection("categories").find({parentID: obj._id}).toArray();
@@ -65,7 +67,7 @@ module.exports.getAllCategory = function(document, callback){
 				return server.close();
 			}).run();
 		}
-	})
+	});
 };
 module.exports.getCategoryByID = function(document, callback){
 	callback = (typeof callback === 'function') ? callback : function() {
@@ -79,7 +81,7 @@ module.exports.getCategoryByID = function(document, callback){
 				Fiber = require('fibers');
 				Fiber(function() {
 					var Server = require("mongo-sync").Server;
-					var server = new Server('localhost');
+					var server = new Server('54.169.67.166');
 					var obj = res[0];
 					var child = server.db("TodayVoice").getCollection("categories").find({parentID: obj._id}).toArray();
 					if(!_.isUndefined(child) && child.length > 0){
@@ -142,6 +144,11 @@ module.exports.updateCategory = function(document, callback) {
 	var documentID = parseInt(document._id);
 	delete document._id;
 	document.date_edit = new Date();
+	if (_.isNumber(document.parentID)) {
+		document.parentID = parseInt(document.parentID);
+	} else{
+		document.parentID = 0;
+	}
 	categories.update({
 		_id : documentID
 	}, {
